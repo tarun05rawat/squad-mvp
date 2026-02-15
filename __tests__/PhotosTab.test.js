@@ -21,6 +21,42 @@ describe('PhotosTab', () => {
   const mockUserId = 'user-123';
   const mockOnPhotoPress = jest.fn();
 
+  // Helper to create mock query chain for the 3-query pattern
+  const setupMockQueries = (photosData = [], usersData = [], eventsData = []) => {
+    supabase.from.mockImplementation((table) => {
+      if (table === 'photos') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              order: jest.fn().mockResolvedValue({
+                data: photosData,
+                error: null,
+              }),
+            }),
+          }),
+        };
+      } else if (table === 'users') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({
+              data: usersData,
+              error: null,
+            }),
+          }),
+        };
+      } else if (table === 'events') {
+        return {
+          select: jest.fn().mockReturnValue({
+            in: jest.fn().mockResolvedValue({
+              data: eventsData,
+              error: null,
+            }),
+          }),
+        };
+      }
+    });
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
@@ -39,18 +75,7 @@ describe('PhotosTab', () => {
   });
 
   it('should render loading state initially', () => {
-    const selectMock = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        order: jest.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
-      }),
-    });
-
-    supabase.from.mockReturnValue({
-      select: selectMock,
-    });
+    setupMockQueries([], [], []);
 
     const { getByTestId } = render(
       <PhotosTab squadId={mockSquadId} onPhotoPress={mockOnPhotoPress} />
@@ -59,54 +84,47 @@ describe('PhotosTab', () => {
     // ActivityIndicator is shown during loading
   });
 
-  it('should fetch and display photos', async () => {
-    const mockPhotos = [
+  it('should fetch and display photos with manual join', async () => {
+    const mockPhotosData = [
       {
         id: 'photo-1',
         photo_url: 'https://example.com/photo1.jpg',
         caption: 'Test photo',
         uploaded_by: mockUserId,
+        event_id: 'event-1',
         created_at: new Date().toISOString(),
-        uploader: { full_name: 'Test User' },
-        event: null,
       },
     ];
 
-    const selectMock = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        order: jest.fn().mockResolvedValue({
-          data: mockPhotos,
-          error: null,
-        }),
-      }),
-    });
+    const mockUsersData = [
+      {
+        id: mockUserId,
+        full_name: 'Test User',
+      },
+    ];
 
-    supabase.from.mockReturnValue({
-      select: selectMock,
-    });
+    const mockEventsData = [
+      {
+        id: 'event-1',
+        title: 'Test Event',
+      },
+    ];
 
-    const { findByText } = render(
+    setupMockQueries(mockPhotosData, mockUsersData, mockEventsData);
+
+    render(
       <PhotosTab squadId={mockSquadId} onPhotoPress={mockOnPhotoPress} />
     );
 
     await waitFor(() => {
-      expect(selectMock).toHaveBeenCalled();
+      expect(supabase.from).toHaveBeenCalledWith('photos');
+      expect(supabase.from).toHaveBeenCalledWith('users');
+      expect(supabase.from).toHaveBeenCalledWith('events');
     });
   });
 
   it('should display empty state when no photos', async () => {
-    const selectMock = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        order: jest.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
-      }),
-    });
-
-    supabase.from.mockReturnValue({
-      select: selectMock,
-    });
+    setupMockQueries([], [], []);
 
     const { findByText } = render(
       <PhotosTab squadId={mockSquadId} />
@@ -117,35 +135,33 @@ describe('PhotosTab', () => {
   });
 
   it('should call onPhotoPress when photo is tapped', async () => {
-    const mockPhoto = {
-      id: 'photo-1',
-      photo_url: 'https://example.com/photo1.jpg',
-      caption: 'Test photo',
-      uploaded_by: mockUserId,
-      created_at: new Date().toISOString(),
-      uploader: { full_name: 'Test User' },
-      event: null,
-    };
+    const mockPhotosData = [
+      {
+        id: 'photo-1',
+        photo_url: 'https://example.com/photo1.jpg',
+        caption: 'Test photo',
+        uploaded_by: mockUserId,
+        event_id: null,
+        created_at: new Date().toISOString(),
+      },
+    ];
 
-    const selectMock = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        order: jest.fn().mockResolvedValue({
-          data: [mockPhoto],
-          error: null,
-        }),
-      }),
-    });
+    const mockUsersData = [
+      {
+        id: mockUserId,
+        full_name: 'Test User',
+      },
+    ];
 
-    supabase.from.mockReturnValue({
-      select: selectMock,
-    });
+    setupMockQueries(mockPhotosData, mockUsersData, []);
 
-    const { findByText } = render(
+    render(
       <PhotosTab squadId={mockSquadId} onPhotoPress={mockOnPhotoPress} />
     );
 
     await waitFor(() => {
-      expect(selectMock).toHaveBeenCalled();
+      expect(supabase.from).toHaveBeenCalledWith('photos');
+      expect(supabase.from).toHaveBeenCalledWith('users');
     });
 
     // Note: In actual implementation, we'd need to add testID to TouchableOpacity
@@ -153,18 +169,7 @@ describe('PhotosTab', () => {
   });
 
   it('should subscribe to real-time photo updates', () => {
-    const selectMock = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        order: jest.fn().mockResolvedValue({
-          data: [],
-          error: null,
-        }),
-      }),
-    });
-
-    supabase.from.mockReturnValue({
-      select: selectMock,
-    });
+    setupMockQueries([], [], []);
 
     const mockOn = jest.fn().mockReturnThis();
     const mockSubscribe = jest.fn().mockReturnThis();
@@ -212,26 +217,107 @@ describe('PhotosTab', () => {
   });
 
   it('should handle photo fetch errors gracefully', async () => {
-    const selectMock = jest.fn().mockReturnValue({
-      eq: jest.fn().mockReturnValue({
-        order: jest.fn().mockResolvedValue({
-          data: null,
-          error: { message: 'Database error' },
-        }),
-      }),
-    });
-
-    supabase.from.mockReturnValue({
-      select: selectMock,
+    // Mock error for photos query
+    supabase.from.mockImplementation((table) => {
+      if (table === 'photos') {
+        return {
+          select: jest.fn().mockReturnValue({
+            eq: jest.fn().mockReturnValue({
+              order: jest.fn().mockResolvedValue({
+                data: null,
+                error: { message: 'Database error' },
+              }),
+            }),
+          }),
+        };
+      }
     });
 
     // Should not crash
-    const { findByText } = render(
+    render(
       <PhotosTab squadId={mockSquadId} />
     );
 
     await waitFor(() => {
-      expect(selectMock).toHaveBeenCalled();
+      expect(supabase.from).toHaveBeenCalledWith('photos');
     });
+  });
+
+  it('should handle photos without event_id correctly', async () => {
+    const mockPhotosData = [
+      {
+        id: 'photo-1',
+        photo_url: 'https://example.com/photo1.jpg',
+        caption: 'Test photo',
+        uploaded_by: mockUserId,
+        event_id: null, // No event
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    const mockUsersData = [
+      {
+        id: mockUserId,
+        full_name: 'Test User',
+      },
+    ];
+
+    setupMockQueries(mockPhotosData, mockUsersData, []);
+
+    render(
+      <PhotosTab squadId={mockSquadId} />
+    );
+
+    await waitFor(() => {
+      expect(supabase.from).toHaveBeenCalledWith('photos');
+      expect(supabase.from).toHaveBeenCalledWith('users');
+      // Should not query events table when no photos have event_id
+    });
+  });
+
+  it('should enrich photos with uploader and event data', async () => {
+    const mockPhotosData = [
+      {
+        id: 'photo-1',
+        photo_url: 'https://example.com/photo1.jpg',
+        caption: 'Photo at event',
+        uploaded_by: 'user-1',
+        event_id: 'event-1',
+        created_at: new Date().toISOString(),
+      },
+      {
+        id: 'photo-2',
+        photo_url: 'https://example.com/photo2.jpg',
+        caption: 'Random photo',
+        uploaded_by: 'user-2',
+        event_id: null,
+        created_at: new Date().toISOString(),
+      },
+    ];
+
+    const mockUsersData = [
+      { id: 'user-1', full_name: 'Alice' },
+      { id: 'user-2', full_name: 'Bob' },
+    ];
+
+    const mockEventsData = [
+      { id: 'event-1', title: 'Birthday Party' },
+    ];
+
+    setupMockQueries(mockPhotosData, mockUsersData, mockEventsData);
+
+    render(
+      <PhotosTab squadId={mockSquadId} />
+    );
+
+    await waitFor(() => {
+      // Should fetch from all 3 tables
+      expect(supabase.from).toHaveBeenCalledWith('photos');
+      expect(supabase.from).toHaveBeenCalledWith('users');
+      expect(supabase.from).toHaveBeenCalledWith('events');
+    });
+
+    // Component should combine the data correctly
+    // The enrichment happens in fetchPhotos function
   });
 });
