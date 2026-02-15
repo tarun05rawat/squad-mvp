@@ -271,7 +271,16 @@ const styles = StyleSheet.create({
     backgroundColor: "rgba(0,0,0,0.5)",
     padding: 24,
   },
-  modalContent: { backgroundColor: "#fff", borderRadius: 16, padding: 24 },
+  modalContent: {
+    backgroundColor: "#fff",
+    borderRadius: 16,
+    padding: 24,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.2,
+    shadowRadius: 8,
+    elevation: 8,
+  },
   modalTitle: {
     fontSize: 20,
     fontWeight: "600",

@@ -20,10 +20,23 @@ CREATE TABLE IF NOT EXISTS squads (
 -- Squad members (many-to-many)
 CREATE TABLE IF NOT EXISTS squad_members (
   squad_id UUID REFERENCES squads(id) ON DELETE CASCADE,
-  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   joined_at TIMESTAMPTZ DEFAULT NOW(),
   PRIMARY KEY (squad_id, user_id)
 );
+
+-- Add foreign key to users table if it doesn't exist
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM information_schema.table_constraints
+    WHERE constraint_name = 'squad_members_user_id_fkey_users'
+  ) THEN
+    ALTER TABLE squad_members
+    ADD CONSTRAINT squad_members_user_id_fkey_users
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE;
+  END IF;
+END $$;
 
 -- Events
 CREATE TABLE IF NOT EXISTS events (
@@ -89,6 +102,28 @@ CREATE POLICY "Update options" ON event_options FOR UPDATE USING (auth.uid() IS 
 -- Event votes: one vote per user per option
 CREATE POLICY "View votes" ON event_votes FOR SELECT USING (true);
 CREATE POLICY "Cast votes" ON event_votes FOR INSERT WITH CHECK (auth.uid() = user_id);
+
+-- Grant permissions to authenticated users
+GRANT SELECT ON users TO authenticated;
+GRANT INSERT ON users TO authenticated;
+GRANT UPDATE ON users TO authenticated;
+
+GRANT SELECT ON squads TO authenticated;
+GRANT INSERT ON squads TO authenticated;
+
+GRANT SELECT ON squad_members TO authenticated;
+GRANT INSERT ON squad_members TO authenticated;
+
+GRANT SELECT ON events TO authenticated;
+GRANT INSERT ON events TO authenticated;
+GRANT UPDATE ON events TO authenticated;
+
+GRANT SELECT ON event_options TO authenticated;
+GRANT INSERT ON event_options TO authenticated;
+GRANT UPDATE ON event_options TO authenticated;
+
+GRANT SELECT ON event_votes TO authenticated;
+GRANT INSERT ON event_votes TO authenticated;
 
 -- Enable realtime for event_options (for live vote counts)
 ALTER PUBLICATION supabase_realtime ADD TABLE event_options;

@@ -21,8 +21,11 @@ export default function SignUpScreen({ navigation }) {
     setLoading(true);
     try {
       await signUp(email, password, fullName);
-      Alert.alert('Success', 'Account created! You can now sign in.');
-      navigation.navigate('Login');
+      Alert.alert(
+        'Check Your Email',
+        'We sent you a verification link. Please verify your email before signing in.',
+        [{ text: 'OK', onPress: () => navigation.navigate('Login') }]
+      );
     } catch (error) {
       Alert.alert('Sign Up Failed', error.message);
     } finally {

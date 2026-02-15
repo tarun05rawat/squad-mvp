@@ -181,7 +181,7 @@ export default function SwipeVotingScreen({ route, navigation }) {
                 <Text style={styles.cardVotes}>{card?.vote_count || 0} votes</Text>
                 {cardVoters.length > 0 && (
                   <Text style={styles.cardVoters}>
-                    {cardVoters.map(n => n.split(' ').map(w => w[0]).join('')).join(', ')}
+                    {cardVoters.join(', ')}
                   </Text>
                 )}
               </View>

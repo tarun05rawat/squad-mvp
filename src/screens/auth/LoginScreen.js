@@ -17,7 +17,10 @@ export default function LoginScreen({ navigation }) {
     try {
       await signIn(email, password);
     } catch (error) {
-      Alert.alert('Login Failed', error.message);
+      const message = error.message.includes('Email not confirmed')
+        ? 'Please verify your email before signing in. Check your inbox for the verification link.'
+        : error.message;
+      Alert.alert('Login Failed', message);
     } finally {
       setLoading(false);
     }

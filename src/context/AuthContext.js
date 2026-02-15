@@ -27,17 +27,28 @@ export function AuthProvider({ children }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: {
+        data: { full_name: fullName },
+        emailRedirectTo: undefined, // Email verification enabled
+      },
     });
     if (error) throw error;
 
     // Insert into users table
     if (data.user) {
-      await supabase.from('users').upsert({
+      const { error: insertError } = await supabase.from('users').upsert({
         id: data.user.id,
         email,
         full_name: fullName,
+      }, {
+        onConflict: 'id'
       });
+
+      if (insertError) {
+        console.error('Error inserting user into users table:', insertError);
+        // Don't throw - user is created in auth, they can still use the app
+        // The signIn function will handle inserting their data later
+      }
     }
     return data;
   };
@@ -48,6 +59,19 @@ export function AuthProvider({ children }) {
       password,
     });
     if (error) throw error;
+
+    // Upsert user data to users table (for existing users or if signup failed to insert)
+    if (data.user) {
+      const fullName = data.user.user_metadata?.full_name || data.user.email?.split('@')[0] || 'User';
+      await supabase.from('users').upsert({
+        id: data.user.id,
+        email: data.user.email,
+        full_name: fullName,
+      }, {
+        onConflict: 'id'
+      });
+    }
+
     return data;
   };
 
