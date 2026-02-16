@@ -8,6 +8,8 @@ export function usePhotoReactions(photoId) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    if (!photoId) return;
+
     fetchReactions();
 
     // Set up real-time subscription
@@ -93,18 +95,12 @@ export function usePhotoReactions(photoId) {
 
     if (error) {
       console.error('Error adding reaction:', error);
-      // Rollback optimistic update
       setReactions((prev) => prev.filter((r) => r.id !== tempId));
       return;
     }
 
-    // Note: Real-time subscription will handle adding the actual reaction
-    // Remove the temporary one since the subscription will add the real one
-    if (data) {
-      setReactions((prev) =>
-        prev.map((r) => (r.id === tempId ? data : r))
-      );
-    }
+    // Remove temp reaction - real-time subscription will add the actual one
+    setReactions((prev) => prev.filter((r) => r.id !== tempId));
   }
 
   async function removeReaction(reactionId) {

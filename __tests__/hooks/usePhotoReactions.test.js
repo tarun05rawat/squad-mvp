@@ -154,8 +154,10 @@ describe('usePhotoReactions', () => {
         { id: '1', photo_id: mockPhotoId, user_id: 'user-1', emoji: '👍' },
       ];
 
+      const newReaction = { id: 'new-reaction-id', photo_id: mockPhotoId, user_id: mockUserId, emoji: '❤️' };
+
       const mockInsert = jest.fn().mockResolvedValue({
-        data: { id: 'new-reaction-id', photo_id: mockPhotoId, user_id: mockUserId, emoji: '❤️' },
+        data: newReaction,
         error: null,
       });
 
@@ -166,6 +168,22 @@ describe('usePhotoReactions', () => {
 
       const mockSelect = jest.fn().mockReturnValue({
         eq: mockEq,
+      });
+
+      // Capture the subscription callback
+      let subscriptionCallback;
+      const mockUnsubscribe = jest.fn();
+      const mockSubscribe = jest.fn().mockReturnValue({
+        unsubscribe: mockUnsubscribe,
+      });
+      const mockOn = jest.fn().mockImplementation((eventType, config, callback) => {
+        subscriptionCallback = callback;
+        return { on: mockOn, subscribe: mockSubscribe };
+      });
+
+      supabase.channel.mockReturnValue({
+        on: mockOn,
+        subscribe: mockSubscribe,
       });
 
       // First call is for select (fetch), second is for insert (add)
@@ -186,20 +204,27 @@ describe('usePhotoReactions', () => {
       // Add reaction
       await result.current.addReaction('❤️');
 
-      // Check optimistic update
-      await waitFor(() => {
-        expect(result.current.reactions).toHaveLength(2);
-      });
-
-      expect(result.current.reactions[1].emoji).toBe('❤️');
-      expect(result.current.reactions[1].user_id).toBe(mockUserId);
-
       // Check database call
       expect(mockInsert).toHaveBeenCalledWith({
         photo_id: mockPhotoId,
         user_id: mockUserId,
         emoji: '❤️',
       });
+
+      // Simulate real-time subscription INSERT event
+      subscriptionCallback({
+        eventType: 'INSERT',
+        new: newReaction,
+      });
+
+      // Check that reaction was added via subscription
+      await waitFor(() => {
+        expect(result.current.reactions).toHaveLength(2);
+      });
+
+      expect(result.current.reactions[1].emoji).toBe('❤️');
+      expect(result.current.reactions[1].user_id).toBe(mockUserId);
+      expect(result.current.reactions[1].id).toBe('new-reaction-id');
     });
 
     it('should rollback on error', async () => {
