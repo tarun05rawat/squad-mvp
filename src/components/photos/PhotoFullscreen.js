@@ -13,6 +13,9 @@ import {
 import { formatDistanceToNow } from 'date-fns';
 import { deletePhotoComplete } from '../../utils/photoUtils';
 import { useAuth } from '../../context/AuthContext';
+import ReactionBar from '../reactions/ReactionBar';
+import EmojiPicker from '../reactions/EmojiPicker';
+import { usePhotoReactions } from '../../hooks/usePhotoReactions';
 
 const { width, height } = Dimensions.get('window');
 
@@ -21,6 +24,7 @@ const { width, height } = Dimensions.get('window');
  */
 export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
   const { user } = useAuth();
+  const { groupedReactions, addReaction } = usePhotoReactions(photo?.id);
 
   if (!photo) return null;
 
@@ -109,13 +113,17 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
               </View>
             )}
 
-            {/* Placeholder for reactions/comments */}
-            <View style={styles.reactionsPlaceholder}>
-              <Text style={styles.placeholderText}>
-                💡 Reactions and comments coming soon!
-              </Text>
+            {/* Reactions */}
+            <View style={styles.reactionsSection}>
+              <ReactionBar
+                groupedReactions={groupedReactions}
+                onReactionPress={addReaction}
+              />
             </View>
           </ScrollView>
+
+          {/* Emoji Picker - Fixed at bottom */}
+          <EmojiPicker onEmojiPress={addReaction} />
         </View>
       </View>
     </Modal>
@@ -222,14 +230,7 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 22,
   },
-  reactionsPlaceholder: {
-    padding: 20,
-    backgroundColor: '#F9FAFB',
-    borderRadius: 12,
-    alignItems: 'center',
-  },
-  placeholderText: {
-    fontSize: 14,
-    color: '#9CA3AF',
+  reactionsSection: {
+    marginTop: 8,
   },
 });
