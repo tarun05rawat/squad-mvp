@@ -1,6 +1,8 @@
 import React from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Image } from "react-native";
 import { formatDistanceToNow } from "date-fns";
+import ReactionBar from "../reactions/ReactionBar";
+import { usePhotoReactions } from "../../hooks/usePhotoReactions";
 
 /**
  * Individual feed item component
@@ -36,27 +38,7 @@ export default function FeedItem({ item, onPhotoPress, onEventPress }) {
         );
 
       case "photo_uploaded":
-        return (
-          <TouchableOpacity onPress={() => onPhotoPress?.(item.photo)}>
-            <View style={styles.contentContainer}>
-              <Text style={styles.actorName}>{item.actor_name}</Text>
-              <Text style={styles.actionText}> uploaded a photo</Text>
-              {item.event_name && (
-                <Text style={styles.eventContext}> to {item.event_name}</Text>
-              )}
-            </View>
-            {item.photo?.photo_url && (
-              <Image
-                source={{ uri: item.photo.photo_url }}
-                style={styles.photoPreview}
-                resizeMode="cover"
-              />
-            )}
-            {item.photo?.caption && (
-              <Text style={styles.caption}>{item.photo.caption}</Text>
-            )}
-          </TouchableOpacity>
-        );
+        return <PhotoUploadedContent item={item} onPhotoPress={onPhotoPress} />;
 
       case "comment_added":
         return (
@@ -97,6 +79,40 @@ export default function FeedItem({ item, onPhotoPress, onEventPress }) {
       </View>
       {renderFeedContent()}
     </View>
+  );
+}
+
+function PhotoUploadedContent({ item, onPhotoPress }) {
+  const photoId = item.photo?.id || item.entity_id;
+  const { groupedReactions, addReaction } = usePhotoReactions(photoId);
+
+  return (
+    <TouchableOpacity onPress={() => onPhotoPress?.(item.photo)}>
+      <View style={styles.contentContainer}>
+        <Text style={styles.actorName}>{item.actor_name}</Text>
+        <Text style={styles.actionText}> uploaded a photo</Text>
+        {item.event_name && (
+          <Text style={styles.eventContext}> to {item.event_name}</Text>
+        )}
+      </View>
+      {item.photo?.photo_url && (
+        <Image
+          source={{ uri: item.photo.photo_url }}
+          style={styles.photoPreview}
+          resizeMode="cover"
+        />
+      )}
+      {item.photo?.caption && (
+        <Text style={styles.caption}>{item.photo.caption}</Text>
+      )}
+      <View testID={`reaction-bar-${photoId}`}>
+        <ReactionBar
+          groupedReactions={groupedReactions}
+          onReactionPress={addReaction}
+          compact={true}
+        />
+      </View>
+    </TouchableOpacity>
   );
 }
 

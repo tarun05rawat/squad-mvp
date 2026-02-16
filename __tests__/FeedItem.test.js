@@ -2,6 +2,14 @@ import React from "react";
 import { render, fireEvent } from "@testing-library/react-native";
 import FeedItem from "../src/components/feed/FeedItem";
 
+// Mock the usePhotoReactions hook
+jest.mock("../src/hooks/usePhotoReactions", () => ({
+  usePhotoReactions: jest.fn(() => ({
+    groupedReactions: [],
+    addReaction: jest.fn(),
+  })),
+}));
+
 describe("FeedItem", () => {
   const mockOnPhotoPress = jest.fn();
   const mockOnEventPress = jest.fn();
@@ -148,6 +156,26 @@ describe("FeedItem", () => {
 
       fireEvent.press(getByText("Jane Smith"));
       expect(mockOnPhotoPress).toHaveBeenCalledWith(mockPhoto);
+    });
+
+    it("should render ReactionBar for photos", () => {
+      const item = {
+        id: "feed-3",
+        type: "photo_uploaded",
+        entity_id: "photo-123",
+        actor_name: "Jane Smith",
+        photo: {
+          id: "photo-123",
+          photo_url: "https://example.com/photo.jpg",
+        },
+        created_at: new Date().toISOString(),
+      };
+
+      const { getByTestId } = render(
+        <FeedItem item={item} onPhotoPress={jest.fn()} />
+      );
+
+      expect(getByTestId("reaction-bar-photo-123")).toBeTruthy();
     });
   });
 
