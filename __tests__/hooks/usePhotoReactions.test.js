@@ -43,9 +43,13 @@ describe('usePhotoReactions', () => {
         { id: '2', photo_id: mockPhotoId, user_id: 'user-2', emoji: '❤️' },
       ];
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: mockReactions,
         error: null,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       supabase.from.mockReturnValue({
@@ -66,14 +70,19 @@ describe('usePhotoReactions', () => {
       expect(result.current.reactions).toEqual(mockReactions);
       expect(supabase.from).toHaveBeenCalledWith('photo_reactions');
       expect(mockSelect).toHaveBeenCalledWith('*');
+      expect(mockEq).toHaveBeenCalledWith('photo_id', mockPhotoId);
     });
 
     it('should handle fetch errors', async () => {
       const mockError = { message: 'Database error' };
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: null,
         error: mockError,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       supabase.from.mockReturnValue({
@@ -108,9 +117,13 @@ describe('usePhotoReactions', () => {
         subscribe: mockSubscribe,
       });
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: [],
         error: null,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       supabase.from.mockReturnValue({
@@ -146,9 +159,13 @@ describe('usePhotoReactions', () => {
         error: null,
       });
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: mockReactions,
         error: null,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       // First call is for select (fetch), second is for insert (add)
@@ -195,9 +212,13 @@ describe('usePhotoReactions', () => {
         error: { message: 'Insert failed' },
       });
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: mockReactions,
         error: null,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       // First call is for select (fetch), second is for insert (add)
@@ -240,9 +261,13 @@ describe('usePhotoReactions', () => {
         error: null,
       });
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: mockReactions,
         error: null,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       // First call is for select (fetch), second is for delete (remove)
@@ -288,9 +313,13 @@ describe('usePhotoReactions', () => {
         error: { message: 'Delete failed' },
       });
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: mockReactions,
         error: null,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       // First call is for select (fetch), second is for delete (remove)
@@ -333,9 +362,13 @@ describe('usePhotoReactions', () => {
         { id: '4', photo_id: mockPhotoId, user_id: 'user-3', emoji: '❤️' },
       ];
 
-      const mockSelect = jest.fn().mockResolvedValue({
+      const mockEq = jest.fn().mockResolvedValue({
         data: mockReactions,
         error: null,
+      });
+
+      const mockSelect = jest.fn().mockReturnValue({
+        eq: mockEq,
       });
 
       supabase.from.mockReturnValue({
@@ -353,13 +386,11 @@ describe('usePhotoReactions', () => {
           emoji: '👍',
           count: 2,
           userReacted: false,
-          reactionId: null,
         },
         {
           emoji: '❤️',
           count: 2,
           userReacted: true,
-          reactionId: '2',
         },
       ]);
     });

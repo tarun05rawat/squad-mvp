@@ -41,7 +41,8 @@ export function usePhotoReactions(photoId) {
       setLoading(true);
       const { data, error } = await supabase
         .from('photo_reactions')
-        .select('*');
+        .select('*')
+        .eq('photo_id', photoId);
 
       if (error) {
         console.error('Error fetching reactions:', error);
@@ -134,7 +135,6 @@ export function usePhotoReactions(photoId) {
           emoji: reaction.emoji,
           count: 0,
           userReacted: false,
-          reactionId: null,
         };
       }
 
@@ -142,11 +142,10 @@ export function usePhotoReactions(photoId) {
 
       if (user && reaction.user_id === user.id) {
         grouped[reaction.emoji].userReacted = true;
-        grouped[reaction.emoji].reactionId = reaction.id;
       }
     });
 
-    return Object.values(grouped);
+    return Object.values(grouped).sort((a, b) => b.count - a.count);
   }, [reactions, user]);
 
   return {
