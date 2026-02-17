@@ -87,7 +87,9 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
                   {photo.uploader?.full_name || 'Unknown User'}
                 </Text>
                 <Text style={styles.timestamp}>
-                  {formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })}
+                  {photo.created_at
+                    ? formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })
+                    : 'Just now'}
                 </Text>
               </View>
 
