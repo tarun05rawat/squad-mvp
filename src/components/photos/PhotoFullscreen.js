@@ -145,34 +145,34 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
           {/* Tab content — flex:1 so it fills remaining panel height */}
           <View style={styles.tabContent}>
             {activeTab === 'reactions' ? (
-              <ScrollView
-                style={styles.reactionsScroll}
-                contentContainerStyle={styles.reactionsScrollContent}
-                keyboardShouldPersistTaps="handled"
-              >
-                {/* Reaction pills */}
-                {groupedReactions.length > 0 ? (
-                  <ReactionBar
-                    groupedReactions={groupedReactions}
-                    onReactionPress={(emoji) => {
-                      setSelectedReactionEmoji(emoji);
-                      setReactorsListVisible(true);
-                    }}
-                  />
-                ) : (
-                  <View style={styles.noReactionsContainer}>
-                    <Text style={styles.noReactionsText}>No reactions yet</Text>
-                    <Text style={styles.noReactionsSubtext}>
-                      Use the emoji picker below to react!
-                    </Text>
-                  </View>
-                )}
+              <View style={styles.reactionsTab}>
+                {/* Reaction pills — top-aligned, scrollable if many */}
+                <ScrollView
+                  style={styles.reactionsScroll}
+                  contentContainerStyle={styles.reactionsScrollContent}
+                  showsVerticalScrollIndicator={false}
+                >
+                  {groupedReactions.length > 0 ? (
+                    <ReactionBar
+                      groupedReactions={groupedReactions}
+                      onReactionPress={(emoji) => {
+                        setSelectedReactionEmoji(emoji);
+                        setReactorsListVisible(true);
+                      }}
+                    />
+                  ) : (
+                    <View style={styles.noReactionsContainer}>
+                      <Text style={styles.noReactionsText}>No reactions yet</Text>
+                      <Text style={styles.noReactionsSubtext}>
+                        Tap an emoji below to react 👇
+                      </Text>
+                    </View>
+                  )}
+                </ScrollView>
 
-                {/* Emoji picker inline on reactions tab */}
-                <View style={styles.emojiPickerWrapper}>
-                  <EmojiPicker compact onEmojiPress={addReaction} />
-                </View>
-              </ScrollView>
+                {/* Emoji picker — pinned to bottom, never scrolls */}
+                <EmojiPicker compact onEmojiPress={addReaction} />
+              </View>
             ) : (
               /* Comments tab — PhotoComments gets full flex:1 height */
               <PhotoComments photoId={photo.id} />
@@ -325,33 +325,30 @@ const styles = StyleSheet.create({
   tabContent: {
     flex: 1,
   },
-  // Reactions tab
+  // Reactions tab — column: pills on top, emoji picker pinned at bottom
+  reactionsTab: {
+    flex: 1,
+  },
   reactionsScroll: {
     flex: 1,
   },
   reactionsScrollContent: {
     paddingHorizontal: 20,
     paddingTop: 12,
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   noReactionsContainer: {
-    paddingVertical: 24,
+    paddingVertical: 12,
     alignItems: 'center',
   },
   noReactionsText: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#6B7280',
     fontWeight: '500',
   },
   noReactionsSubtext: {
     fontSize: 13,
     color: '#9CA3AF',
-    marginTop: 4,
-  },
-  emojiPickerWrapper: {
-    marginTop: 16,
-    borderTopWidth: 1,
-    borderTopColor: '#F3F4F6',
-    paddingTop: 12,
+    marginTop: 2,
   },
 });
