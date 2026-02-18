@@ -29,6 +29,7 @@
     "@supabase/supabase-js": "^2.91.0",
     "date-fns": "^4.1.0",
     "expo": "~54.0.32",
+    "expo-file-system": "~19.0.21",
     "expo-image-picker": "~17.0.10",
     "expo-status-bar": "~3.0.9",
     "react": "19.1.0",

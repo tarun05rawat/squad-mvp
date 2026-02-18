@@ -1,4 +1,5 @@
 import { supabase } from '../lib/supabase';
+import * as FileSystem from 'expo-file-system';
 
 /**
  * Upload photo to Supabase Storage
@@ -17,13 +18,19 @@ export async function uploadPhoto(file, userId) {
     const mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif' };
     const contentType = mimeMap[fileExt] || 'image/jpeg';
 
-    // Convert URI to blob for upload
-    const response = await fetch(file.uri);
-    const blob = await response.blob();
+    // Read file as base64 and decode to ArrayBuffer for upload
+    const base64 = await FileSystem.readAsStringAsync(file.uri, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+    const binaryStr = atob(base64);
+    const bytes = new Uint8Array(binaryStr.length);
+    for (let i = 0; i < binaryStr.length; i++) {
+      bytes[i] = binaryStr.charCodeAt(i);
+    }
 
     const { data, error } = await supabase.storage
       .from('squad-photos')
-      .upload(filePath, blob, {
+      .upload(filePath, bytes, {
         contentType,
         cacheControl: '3600',
         upsert: false
