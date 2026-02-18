@@ -10,6 +10,7 @@ import {
   Platform,
   ActivityIndicator,
 } from 'react-native';
+import { Swipeable } from 'react-native-gesture-handler';
 import { formatDistanceToNow } from 'date-fns';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -210,11 +211,22 @@ export default function PhotoComments({ photoId }) {
     }
   };
 
+  const renderRightActions = (commentId) => (
+    <TouchableOpacity
+      style={styles.deleteAction}
+      onPress={() => deleteComment(commentId)}
+      activeOpacity={0.8}
+    >
+      <Text style={styles.deleteActionIcon}>🗑️</Text>
+      <Text style={styles.deleteActionText}>Delete</Text>
+    </TouchableOpacity>
+  );
+
   const renderComment = ({ item }) => {
     const isOwner = item.user_id === user?.id;
     const isTemp = item.id.toString().startsWith('temp-');
 
-    return (
+    const commentRow = (
       <View style={styles.commentItem}>
         <View style={styles.commentAvatar}>
           <Text style={styles.commentAvatarText}>
@@ -231,17 +243,24 @@ export default function PhotoComments({ photoId }) {
             </Text>
           </View>
           <Text style={styles.commentText}>{item.comment_text}</Text>
-          {isOwner && !isTemp && (
-            <TouchableOpacity
-              style={styles.deleteCommentButton}
-              onPress={() => deleteComment(item.id)}
-            >
-              <Text style={styles.deleteCommentText}>Delete</Text>
-            </TouchableOpacity>
-          )}
         </View>
       </View>
     );
+
+    // Only owner comments on non-temp items get swipe-to-delete
+    if (isOwner && !isTemp) {
+      return (
+        <Swipeable
+          renderRightActions={() => renderRightActions(item.id)}
+          overshootRight={false}
+          friction={2}
+        >
+          {commentRow}
+        </Swipeable>
+      );
+    }
+
+    return commentRow;
   };
 
   return (
@@ -375,14 +394,21 @@ const styles = StyleSheet.create({
     color: '#4B5563',
     lineHeight: 20,
   },
-  deleteCommentButton: {
-    marginTop: 6,
-    alignSelf: 'flex-start',
+  deleteAction: {
+    backgroundColor: '#EF4444',
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: 80,
+    marginBottom: 20,
   },
-  deleteCommentText: {
-    fontSize: 12,
-    color: '#EF4444',
-    fontWeight: '500',
+  deleteActionIcon: {
+    fontSize: 18,
+  },
+  deleteActionText: {
+    color: '#fff',
+    fontSize: 11,
+    fontWeight: '600',
+    marginTop: 2,
   },
   inputContainer: {
     flexDirection: 'row',
