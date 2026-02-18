@@ -77,13 +77,7 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
         {/* Info panel */}
         <View style={styles.infoPanel}>
           {/* Header row: uploader info + delete */}
-          <ScrollView
-            style={styles.headerScroll}
-            contentContainerStyle={styles.headerScrollContent}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-            scrollEnabled={false}
-          >
+          <View style={styles.header}>
             {/* Uploader row */}
             <View style={styles.uploaderRow}>
               <View style={styles.avatar}>
@@ -121,7 +115,7 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
                 <Text style={styles.caption}>{photo.caption}</Text>
               </View>
             )}
-          </ScrollView>
+          </View>
 
           {/* Tab switcher */}
           <View style={styles.tabBar}>
@@ -232,13 +226,10 @@ const styles = StyleSheet.create({
     height: height * 0.55,
     paddingTop: 8,
   },
-  // Header area (uploader, event, caption) — non-scrollable, compact
-  headerScroll: {
-    flexShrink: 0,
-  },
-  headerScrollContent: {
+  // Header area (uploader, event, caption) — compact, no extra space
+  header: {
     paddingHorizontal: 20,
-    paddingBottom: 4,
+    paddingBottom: 0,
   },
   uploaderRow: {
     flexDirection: 'row',

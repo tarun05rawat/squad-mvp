@@ -304,13 +304,14 @@ export default function PhotoComments({ photoId }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    justifyContent: 'space-between',
   },
   loadingContainer: {
-    padding: 40,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   emptyContainer: {
-    padding: 40,
+    paddingVertical: 16,
     alignItems: 'center',
   },
   emptyText: {
