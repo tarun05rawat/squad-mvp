@@ -16,6 +16,13 @@ jest.mock('../../../src/hooks/usePhotoReactions', () => ({
     addReaction: jest.fn(),
   }),
 }));
+jest.mock('../../../src/components/photos/PhotoComments', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return function MockPhotoComments() {
+    return <View />;
+  };
+});
 
 describe('PhotoFullscreen', () => {
   const mockPhoto = {
