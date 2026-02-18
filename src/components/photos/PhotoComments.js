@@ -335,7 +335,7 @@ const styles = StyleSheet.create({
   },
   commentItem: {
     flexDirection: 'row',
-    marginBottom: 16,
+    marginBottom: 20,
   },
   commentAvatar: {
     width: 32,
@@ -361,16 +361,17 @@ const styles = StyleSheet.create({
   },
   commentAuthor: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: '700',
     color: '#333',
     marginRight: 8,
   },
   commentTimestamp: {
-    fontSize: 12,
-    color: '#9CA3AF',
+    fontSize: 11,
+    color: '#B0B7C3',
   },
   commentText: {
     fontSize: 14,
+    fontWeight: '400',
     color: '#4B5563',
     lineHeight: 20,
   },
