@@ -154,6 +154,7 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
                         setSelectedReactionEmoji(emoji);
                         setReactorsListVisible(true);
                       }}
+                      onAddReaction={addReaction}
                     />
                   ) : (
                     <View style={styles.noReactionsContainer}>
@@ -228,6 +229,11 @@ const styles = StyleSheet.create({
     maxHeight: height * 0.62,
     paddingTop: 8,
     paddingBottom: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -3 },
+    shadowOpacity: 0.08,
+    shadowRadius: 8,
+    elevation: 8,
   },
   // Header area (uploader, event, caption) — compact, no extra space
   header: {
