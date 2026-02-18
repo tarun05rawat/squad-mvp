@@ -169,8 +169,10 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
                 <EmojiPicker compact onEmojiPress={addReaction} />
               </View>
             ) : (
-              /* Comments tab — PhotoComments gets full flex:1 height */
-              <PhotoComments photoId={photo.id} />
+              /* Comments tab — fixed height so it fills the panel properly */
+              <View style={styles.commentsTab}>
+                <PhotoComments photoId={photo.id} />
+              </View>
             )}
           </View>
         </View>
@@ -223,9 +225,9 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    flex: 1,
-    maxHeight: height * 0.58,
+    maxHeight: height * 0.62,
     paddingTop: 8,
+    paddingBottom: 20,
   },
   // Header area (uploader, event, caption) — compact, no extra space
   header: {
@@ -316,13 +318,15 @@ const styles = StyleSheet.create({
     color: '#8B5CF6',
     fontWeight: '600',
   },
-  // Tab content area — fills remaining panel space
-  tabContent: {
-    flex: 1,
+  // Tab content area — shrinks to content (reactions) or fills (comments)
+  tabContent: {},
+  // Comments tab — fixed height so list + input have room
+  commentsTab: {
+    height: height * 0.38,
   },
   // Reactions tab — natural height, no flex expansion
   reactionsTab: {
-    // intentionally no flex:1 — shrinks to content
+    // intentionally no flex — shrinks to content
   },
   reactionsContent: {
     paddingHorizontal: 20,
