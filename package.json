@@ -18,7 +18,8 @@
       "<rootDir>/jest.setup.js"
     ],
     "moduleNameMapper": {
-      "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/__mocks__/fileMock.js"
+      "\\.(jpg|jpeg|png|gif|svg)$": "<rootDir>/__mocks__/fileMock.js",
+      "^react-native-gesture-handler$": "<rootDir>/__mocks__/react-native-gesture-handler.js"
     }
   },
   "dependencies": {

@@ -50,9 +50,18 @@ describe('ReactionBar', () => {
       });
     });
 
-    it('should return null if groupedReactions is empty', () => {
+    it('should render empty container if groupedReactions is empty and no onAddReaction', () => {
       const { toJSON } = render(<ReactionBar groupedReactions={[]} />);
-      expect(toJSON()).toBeNull();
+      // Renders an empty View container (not null) — "+" pill only shown when onAddReaction provided
+      expect(toJSON()).not.toBeNull();
+    });
+
+    it('should render "+" pill when groupedReactions is empty and onAddReaction is provided', () => {
+      const mockOnAddReaction = jest.fn();
+      const { getByText } = render(
+        <ReactionBar groupedReactions={[]} onAddReaction={mockOnAddReaction} />
+      );
+      expect(getByText('+')).toBeTruthy();
     });
   });
 
