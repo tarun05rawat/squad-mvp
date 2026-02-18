@@ -6,7 +6,6 @@ import {
   Image,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   KeyboardAvoidingView,
   Platform,
   Alert,
@@ -146,12 +145,8 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
           <View style={styles.tabContent}>
             {activeTab === 'reactions' ? (
               <View style={styles.reactionsTab}>
-                {/* Reaction pills — top-aligned, scrollable if many */}
-                <ScrollView
-                  style={styles.reactionsScroll}
-                  contentContainerStyle={styles.reactionsScrollContent}
-                  showsVerticalScrollIndicator={false}
-                >
+                {/* Reaction pills — natural height, no scroll */}
+                <View style={styles.reactionsContent}>
                   {groupedReactions.length > 0 ? (
                     <ReactionBar
                       groupedReactions={groupedReactions}
@@ -168,9 +163,9 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
                       </Text>
                     </View>
                   )}
-                </ScrollView>
+                </View>
 
-                {/* Emoji picker — pinned to bottom, never scrolls */}
+                {/* Emoji picker — sits directly below pills */}
                 <EmojiPicker compact onEmojiPress={addReaction} />
               </View>
             ) : (
@@ -325,20 +320,17 @@ const styles = StyleSheet.create({
   tabContent: {
     flex: 1,
   },
-  // Reactions tab — column: pills on top, emoji picker pinned at bottom
+  // Reactions tab — natural height, no flex expansion
   reactionsTab: {
-    flex: 1,
+    // intentionally no flex:1 — shrinks to content
   },
-  reactionsScroll: {
-    flex: 1,
-  },
-  reactionsScrollContent: {
+  reactionsContent: {
     paddingHorizontal: 20,
     paddingTop: 12,
     paddingBottom: 4,
   },
   noReactionsContainer: {
-    paddingVertical: 12,
+    paddingVertical: 10,
     alignItems: 'center',
   },
   noReactionsText: {
