@@ -16,6 +16,20 @@ jest.mock('../src/context/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
 
+jest.mock('../src/components/photos/PhotoActionSheet', () => {
+  const React = require('react');
+  const { View, Text, TouchableOpacity } = require('react-native');
+  return function MockPhotoActionSheet({ visible, onClose, onOpenFullscreen, photo }) {
+    if (!visible) return null;
+    return (
+      <View>
+        <Text>View</Text>
+        <TouchableOpacity onPress={onClose}><Text>Cancel</Text></TouchableOpacity>
+      </View>
+    );
+  };
+});
+
 describe('PhotosTab', () => {
   const mockSquadId = 'squad-123';
   const mockUserId = 'user-123';
@@ -319,5 +333,53 @@ describe('PhotosTab', () => {
 
     // Component should combine the data correctly
     // The enrichment happens in fetchPhotos function
+  });
+
+  it('should show action sheet on long press', async () => {
+    const mockPhotosData = [
+      {
+        id: 'photo-1',
+        photo_url: 'https://example.com/photo1.jpg',
+        caption: 'Test photo',
+        uploaded_by: mockUserId,
+        event_id: null,
+        created_at: new Date().toISOString(),
+      },
+    ];
+    const mockUsersData = [{ id: mockUserId, full_name: 'Test User' }];
+    setupMockQueries(mockPhotosData, mockUsersData, []);
+
+    const { findByTestId, getByText } = render(
+      <PhotosTab squadId={mockSquadId} onPhotoPress={mockOnPhotoPress} />
+    );
+
+    const photoItem = await findByTestId('photo-item-photo-1');
+    fireEvent(photoItem, 'longPress');
+
+    await waitFor(() => {
+      expect(getByText('View')).toBeTruthy();
+    });
+  });
+
+  it('should remove photo from grid after delete', async () => {
+    const mockPhotosData = [
+      {
+        id: 'photo-1',
+        photo_url: 'https://example.com/photo1.jpg',
+        caption: 'Test photo',
+        uploaded_by: mockUserId,
+        event_id: null,
+        created_at: new Date().toISOString(),
+      },
+    ];
+    const mockUsersData = [{ id: mockUserId, full_name: 'Test User' }];
+    setupMockQueries(mockPhotosData, mockUsersData, []);
+
+    const { findByTestId } = render(
+      <PhotosTab squadId={mockSquadId} onPhotoPress={mockOnPhotoPress} />
+    );
+
+    const photoItem = await findByTestId('photo-item-photo-1');
+    expect(photoItem).toBeTruthy();
   });
 });

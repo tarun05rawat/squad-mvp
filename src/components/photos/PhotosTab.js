@@ -12,62 +12,35 @@ import {
 } from 'react-native';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
+import PhotoActionSheet from './PhotoActionSheet';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
-const PHOTO_SIZE = (width - 48) / COLUMN_COUNT; // 48 = padding (16*2) + gaps (8*2)
+const PHOTO_SIZE = (width - 48) / COLUMN_COUNT;
 
-/**
- * Photos tab component displaying squad photos in a grid
- */
 export default function PhotosTab({ squadId, onPhotoPress }) {
   const { user } = useAuth();
   const [photos, setPhotos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState(null);
+  const [actionSheetVisible, setActionSheetVisible] = useState(false);
 
   useEffect(() => {
     fetchPhotos();
 
-    // Subscribe to real-time photo updates
     const subscription = supabase
       .channel(`photos:${squadId}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'photos',
-          filter: `squad_id=eq.${squadId}`,
-        },
-        () => {
-          fetchPhotos(); // Refresh when new photo is added
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'photos',
-          filter: `squad_id=eq.${squadId}`,
-        },
-        () => {
-          fetchPhotos(); // Refresh when photo is deleted
-        }
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'photos', filter: `squad_id=eq.${squadId}` }, () => { fetchPhotos(); })
+      .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'photos', filter: `squad_id=eq.${squadId}` }, () => { fetchPhotos(); })
       .subscribe();
 
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => { subscription.unsubscribe(); };
   }, [squadId]);
 
   const fetchPhotos = async () => {
     try {
       setLoading(true);
-
-      // Fetch photos
       const { data: photosData, error: photosError } = await supabase
         .from('photos')
         .select('*')
@@ -81,14 +54,12 @@ export default function PhotosTab({ squadId, onPhotoPress }) {
         return;
       }
 
-      // Fetch uploader details
       const uploaderIds = [...new Set(photosData.map(p => p.uploaded_by))];
       const { data: uploaders } = await supabase
         .from('users')
         .select('id, full_name')
         .in('id', uploaderIds);
 
-      // Fetch event details for photos with event_id
       const eventIds = [...new Set(photosData.filter(p => p.event_id).map(p => p.event_id))];
       let events = [];
       if (eventIds.length > 0) {
@@ -99,7 +70,6 @@ export default function PhotosTab({ squadId, onPhotoPress }) {
         events = eventsData || [];
       }
 
-      // Combine data
       const enrichedPhotos = photosData.map(photo => ({
         ...photo,
         uploader: uploaders?.find(u => u.id === photo.uploaded_by) || null,
@@ -120,10 +90,22 @@ export default function PhotosTab({ squadId, onPhotoPress }) {
     fetchPhotos();
   };
 
+  const handleLongPress = (photo) => {
+    setSelectedPhoto(photo);
+    setActionSheetVisible(true);
+  };
+
+  const handleDelete = (photoId) => {
+    setPhotos(prev => prev.filter(p => p.id !== photoId));
+  };
+
   const renderPhoto = ({ item }) => (
     <TouchableOpacity
+      testID={`photo-item-${item.id}`}
       style={styles.photoContainer}
       onPress={() => onPhotoPress?.(item)}
+      onLongPress={() => handleLongPress(item)}
+      delayLongPress={300}
     >
       <Image
         source={{ uri: item.photo_url }}
@@ -175,69 +157,27 @@ export default function PhotosTab({ squadId, onPhotoPress }) {
           />
         }
       />
+      <PhotoActionSheet
+        visible={actionSheetVisible}
+        photo={selectedPhoto}
+        onClose={() => setActionSheetVisible(false)}
+        onOpenFullscreen={(photo) => onPhotoPress?.(photo)}
+        onDelete={handleDelete}
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#F9FAFB',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F9FAFB',
-  },
-  listContent: {
-    padding: 16,
-  },
-  photoContainer: {
-    width: PHOTO_SIZE,
-    height: PHOTO_SIZE,
-    margin: 4,
-    borderRadius: 8,
-    overflow: 'hidden',
-    backgroundColor: '#E5E7EB',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-  },
-  captionOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-    padding: 6,
-  },
-  captionText: {
-    color: '#fff',
-    fontSize: 11,
-    lineHeight: 14,
-  },
-  emptyContainer: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 80,
-  },
-  emptyEmoji: {
-    fontSize: 64,
-    marginBottom: 16,
-  },
-  emptyText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#999',
-    marginBottom: 8,
-  },
-  emptySubtext: {
-    fontSize: 14,
-    color: '#BBB',
-    textAlign: 'center',
-    paddingHorizontal: 40,
-  },
+  container: { flex: 1, backgroundColor: '#F9FAFB' },
+  loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' },
+  listContent: { padding: 16 },
+  photoContainer: { width: PHOTO_SIZE, height: PHOTO_SIZE, margin: 4, borderRadius: 8, overflow: 'hidden', backgroundColor: '#E5E7EB' },
+  photo: { width: '100%', height: '100%' },
+  captionOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', padding: 6 },
+  captionText: { color: '#fff', fontSize: 11, lineHeight: 14 },
+  emptyContainer: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
+  emptyEmoji: { fontSize: 64, marginBottom: 16 },
+  emptyText: { fontSize: 18, fontWeight: '600', color: '#999', marginBottom: 8 },
+  emptySubtext: { fontSize: 14, color: '#BBB', textAlign: 'center', paddingHorizontal: 40 },
 });
