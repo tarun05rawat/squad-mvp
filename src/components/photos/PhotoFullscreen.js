@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  KeyboardAvoidingView,
+  Platform,
   Alert,
   Dimensions,
 } from 'react-native';
@@ -59,7 +61,10 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
 
   return (
     <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.container}>
+      <KeyboardAvoidingView
+        style={styles.container}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         {/* Close button */}
         <TouchableOpacity style={styles.closeButton} onPress={onClose}>
           <Text style={styles.closeButtonText}>✕</Text>
@@ -174,7 +179,7 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
             )}
           </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
 
       <ReactorsList
         visible={reactorsListVisible}
@@ -223,7 +228,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    height: height * 0.55,
+    flex: 1,
+    maxHeight: height * 0.58,
     paddingTop: 8,
   },
   // Header area (uploader, event, caption) — compact, no extra space

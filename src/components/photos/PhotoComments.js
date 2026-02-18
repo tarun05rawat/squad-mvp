@@ -245,7 +245,11 @@ export default function PhotoComments({ photoId }) {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+    >
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#8B5CF6" />
@@ -263,48 +267,46 @@ export default function PhotoComments({ photoId }) {
           renderItem={renderComment}
           style={styles.commentsList}
           contentContainerStyle={styles.commentsContent}
+          keyboardShouldPersistTaps="handled"
         />
       )}
 
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
-      >
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Add a comment..."
-            placeholderTextColor="#6B7280"
-            value={commentText}
-            onChangeText={setCommentText}
-            multiline
-            maxLength={500}
-            editable={!posting}
-          />
-          <TouchableOpacity
-            style={[styles.postButton, (!commentText.trim() || posting) && styles.postButtonDisabled]}
-            onPress={postComment}
-            disabled={!commentText.trim() || posting}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Add a comment..."
+          placeholderTextColor="#6B7280"
+          value={commentText}
+          onChangeText={setCommentText}
+          multiline
+          maxLength={500}
+          editable={!posting}
+          returnKeyType="send"
+          blurOnSubmit={true}
+          onSubmitEditing={postComment}
+        />
+        <TouchableOpacity
+          style={[styles.postButton, (!commentText.trim() || posting) && styles.postButtonDisabled]}
+          onPress={postComment}
+          disabled={!commentText.trim() || posting}
+        >
+          <Text
+            style={[
+              styles.postButtonText,
+              (!commentText.trim() || posting) && styles.postButtonTextDisabled,
+            ]}
           >
-            <Text
-              style={[
-                styles.postButtonText,
-                (!commentText.trim() || posting) && styles.postButtonTextDisabled,
-              ]}
-            >
-              {posting ? '...' : 'Post'}
-            </Text>
-          </TouchableOpacity>
-        </View>
-      </KeyboardAvoidingView>
-    </View>
+            {posting ? '...' : 'Post'}
+          </Text>
+        </TouchableOpacity>
+      </View>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    justifyContent: 'space-between',
   },
   loadingContainer: {
     paddingVertical: 16,
