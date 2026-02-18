@@ -246,12 +246,6 @@ export default function PhotoComments({ photoId }) {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>
-          Comments {comments.length > 0 && `(${comments.length})`}
-        </Text>
-      </View>
-
       {loading ? (
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="small" color="#8B5CF6" />
@@ -274,7 +268,7 @@ export default function PhotoComments({ photoId }) {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 90 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
       >
         <View style={styles.inputContainer}>
           <TextInput
@@ -309,16 +303,6 @@ export default function PhotoComments({ photoId }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  header: {
-    paddingBottom: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-  },
-  headerTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
   },
   loadingContainer: {
     padding: 40,

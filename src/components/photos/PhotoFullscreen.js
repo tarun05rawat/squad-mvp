@@ -24,7 +24,6 @@ const { width, height } = Dimensions.get('window');
 export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
   const { user } = useAuth();
   const { groupedReactions, addReaction } = usePhotoReactions(photo?.id);
-  const [activeTab, setActiveTab] = useState('reactions');
   const [selectedReactionEmoji, setSelectedReactionEmoji] = useState(null);
   const [reactorsListVisible, setReactorsListVisible] = useState(false);
 
@@ -76,86 +75,72 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
 
         {/* Info panel */}
         <View style={styles.infoPanel}>
-          {/* Uploader row */}
-          <View style={styles.uploaderRow}>
-            <View style={styles.avatar}>
-              <Text style={styles.avatarText}>
-                {photo.uploader?.full_name?.charAt(0).toUpperCase() || 'U'}
-              </Text>
-            </View>
-            <View style={styles.uploaderInfo}>
-              <Text style={styles.uploaderName}>
-                {photo.uploader?.full_name || 'Unknown User'}
-              </Text>
-              <Text style={styles.timestamp}>
-                {photo.created_at
-                  ? formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })
-                  : 'Just now'}
-              </Text>
-            </View>
-            {isOwner && (
-              <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
-                <Text style={styles.deleteButtonText}>🗑️</Text>
-              </TouchableOpacity>
-            )}
-          </View>
-
-          {/* Event tag */}
-          {photo.event && (
-            <View style={styles.eventTag}>
-              <Text style={styles.eventTagText}>📅 {photo.event.title}</Text>
-            </View>
-          )}
-
-          {/* Caption */}
-          {photo.caption && (
-            <View style={styles.captionSection}>
-              <Text style={styles.caption}>{photo.caption}</Text>
-            </View>
-          )}
-
-          {/* Tab switcher */}
-          <View style={styles.tabBar}>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'reactions' && styles.activeTab]}
-              onPress={() => setActiveTab('reactions')}
-            >
-              <Text style={[styles.tabText, activeTab === 'reactions' && styles.activeTabText]}>
-                😍 Reactions
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={[styles.tab, activeTab === 'comments' && styles.activeTab]}
-              onPress={() => setActiveTab('comments')}
-            >
-              <Text style={[styles.tabText, activeTab === 'comments' && styles.activeTabText]}>
-                💬 Comments
-              </Text>
-            </TouchableOpacity>
-          </View>
-
-          {/* Tab content */}
-          {activeTab === 'reactions' ? (
-            <View style={styles.reactionsContent}>
-              <ReactionBar
-                groupedReactions={groupedReactions}
-                onReactionPress={(emoji) => {
-                  setSelectedReactionEmoji(emoji);
-                  setReactorsListVisible(true);
-                }}
-              />
-              {groupedReactions.length === 0 && (
-                <Text style={styles.emptyTabText}>No reactions yet. Be the first!</Text>
+          {/* Scrollable content */}
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.scrollContent}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
+          >
+            {/* Uploader row */}
+            <View style={styles.uploaderRow}>
+              <View style={styles.avatar}>
+                <Text style={styles.avatarText}>
+                  {photo.uploader?.full_name?.charAt(0).toUpperCase() || 'U'}
+                </Text>
+              </View>
+              <View style={styles.uploaderInfo}>
+                <Text style={styles.uploaderName}>
+                  {photo.uploader?.full_name || 'Unknown User'}
+                </Text>
+                <Text style={styles.timestamp}>
+                  {photo.created_at
+                    ? formatDistanceToNow(new Date(photo.created_at), { addSuffix: true })
+                    : 'Just now'}
+                </Text>
+              </View>
+              {isOwner && (
+                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                  <Text style={styles.deleteButtonText}>🗑️</Text>
+                </TouchableOpacity>
               )}
-              <EmojiPicker onEmojiPress={addReaction} />
             </View>
-          ) : (
-            <View style={styles.commentsContent}>
-              <PhotoComments photoId={photo.id} />
-            </View>
-          )}
+
+            {/* Event tag */}
+            {photo.event && (
+              <View style={styles.eventTag}>
+                <Text style={styles.eventTagText}>📅 {photo.event.title}</Text>
+              </View>
+            )}
+
+            {/* Caption */}
+            {photo.caption && (
+              <View style={styles.captionSection}>
+                <Text style={styles.caption}>{photo.caption}</Text>
+              </View>
+            )}
+
+            {/* Reaction pills */}
+            <ReactionBar
+              groupedReactions={groupedReactions}
+              onReactionPress={(emoji) => {
+                setSelectedReactionEmoji(emoji);
+                setReactorsListVisible(true);
+              }}
+            />
+
+            {/* Divider before comments */}
+            <View style={styles.divider} />
+
+            {/* Comments — always visible */}
+            <PhotoComments photoId={photo.id} />
+          </ScrollView>
+
+          {/* Emoji picker — fixed at bottom */}
+          <EmojiPicker compact onEmojiPress={addReaction} />
         </View>
       </View>
+
       <ReactorsList
         visible={reactorsListVisible}
         photoId={photo.id}
@@ -204,8 +189,14 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     maxHeight: height * 0.5,
-    paddingHorizontal: 20,
     paddingTop: 20,
+    paddingBottom: 0,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingHorizontal: 20,
     paddingBottom: 8,
   },
   uploaderRow: {
@@ -265,41 +256,9 @@ const styles = StyleSheet.create({
     color: '#333',
     lineHeight: 22,
   },
-  tabBar: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
-    marginBottom: 12,
-  },
-  tab: {
-    flex: 1,
-    paddingVertical: 10,
-    alignItems: 'center',
-  },
-  activeTab: {
-    borderBottomWidth: 2,
-    borderBottomColor: '#8B5CF6',
-  },
-  tabText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    fontWeight: '500',
-  },
-  activeTabText: {
-    color: '#8B5CF6',
-    fontWeight: '600',
-  },
-  reactionsContent: {
-    paddingBottom: 8,
-  },
-  commentsContent: {
-    flex: 1,
-    minHeight: 200,
-  },
-  emptyTabText: {
-    fontSize: 13,
-    color: '#9CA3AF',
-    textAlign: 'center',
-    paddingVertical: 12,
+  divider: {
+    height: 1,
+    backgroundColor: '#F3F4F6',
+    marginVertical: 12,
   },
 });
