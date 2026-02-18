@@ -24,6 +24,7 @@ const { width, height } = Dimensions.get('window');
 export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
   const { user } = useAuth();
   const { groupedReactions, addReaction } = usePhotoReactions(photo?.id);
+  const [activeTab, setActiveTab] = useState('reactions'); // 'reactions' | 'comments'
   const [selectedReactionEmoji, setSelectedReactionEmoji] = useState(null);
   const [reactorsListVisible, setReactorsListVisible] = useState(false);
 
@@ -75,12 +76,13 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
 
         {/* Info panel */}
         <View style={styles.infoPanel}>
-          {/* Scrollable content */}
+          {/* Header row: uploader info + delete */}
           <ScrollView
-            style={styles.scroll}
-            contentContainerStyle={styles.scrollContent}
+            style={styles.headerScroll}
+            contentContainerStyle={styles.headerScrollContent}
             keyboardShouldPersistTaps="handled"
             showsVerticalScrollIndicator={false}
+            scrollEnabled={false}
           >
             {/* Uploader row */}
             <View style={styles.uploaderRow}>
@@ -119,25 +121,64 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
                 <Text style={styles.caption}>{photo.caption}</Text>
               </View>
             )}
-
-            {/* Reaction pills */}
-            <ReactionBar
-              groupedReactions={groupedReactions}
-              onReactionPress={(emoji) => {
-                setSelectedReactionEmoji(emoji);
-                setReactorsListVisible(true);
-              }}
-            />
-
-            {/* Divider before comments */}
-            <View style={styles.divider} />
-
-            {/* Comments — always visible */}
-            <PhotoComments photoId={photo.id} />
           </ScrollView>
 
-          {/* Emoji picker — fixed at bottom */}
-          <EmojiPicker compact onEmojiPress={addReaction} />
+          {/* Tab switcher */}
+          <View style={styles.tabBar}>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'reactions' && styles.tabActive]}
+              onPress={() => setActiveTab('reactions')}
+            >
+              <Text style={[styles.tabText, activeTab === 'reactions' && styles.tabTextActive]}>
+                😍 Reactions
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[styles.tab, activeTab === 'comments' && styles.tabActive]}
+              onPress={() => setActiveTab('comments')}
+            >
+              <Text style={[styles.tabText, activeTab === 'comments' && styles.tabTextActive]}>
+                💬 Comments
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Tab content — flex:1 so it fills remaining panel height */}
+          <View style={styles.tabContent}>
+            {activeTab === 'reactions' ? (
+              <ScrollView
+                style={styles.reactionsScroll}
+                contentContainerStyle={styles.reactionsScrollContent}
+                keyboardShouldPersistTaps="handled"
+              >
+                {/* Reaction pills */}
+                {groupedReactions.length > 0 ? (
+                  <ReactionBar
+                    groupedReactions={groupedReactions}
+                    onReactionPress={(emoji) => {
+                      setSelectedReactionEmoji(emoji);
+                      setReactorsListVisible(true);
+                    }}
+                  />
+                ) : (
+                  <View style={styles.noReactionsContainer}>
+                    <Text style={styles.noReactionsText}>No reactions yet</Text>
+                    <Text style={styles.noReactionsSubtext}>
+                      Use the emoji picker below to react!
+                    </Text>
+                  </View>
+                )}
+
+                {/* Emoji picker inline on reactions tab */}
+                <View style={styles.emojiPickerWrapper}>
+                  <EmojiPicker compact onEmojiPress={addReaction} />
+                </View>
+              </ScrollView>
+            ) : (
+              /* Comments tab — PhotoComments gets full flex:1 height */
+              <PhotoComments photoId={photo.id} />
+            )}
+          </View>
         </View>
       </View>
 
@@ -182,83 +223,138 @@ const styles = StyleSheet.create({
   },
   image: {
     width: width,
-    height: height * 0.5,
+    height: height * 0.45,
   },
   infoPanel: {
     backgroundColor: '#fff',
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
-    maxHeight: height * 0.5,
-    paddingTop: 20,
-    paddingBottom: 0,
+    height: height * 0.55,
+    paddingTop: 16,
   },
-  scroll: {
-    flex: 1,
+  // Header area (uploader, event, caption) — non-scrollable, compact
+  headerScroll: {
+    flexShrink: 0,
   },
-  scrollContent: {
+  headerScrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 8,
+    paddingBottom: 4,
   },
   uploaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 8,
   },
   avatar: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: '#8B5CF6',
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: 10,
   },
   avatarText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
   },
   uploaderInfo: {
     flex: 1,
   },
   uploaderName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
     color: '#333',
   },
   timestamp: {
-    fontSize: 13,
+    fontSize: 12,
     color: '#999',
-    marginTop: 2,
+    marginTop: 1,
   },
   deleteButton: {
     padding: 8,
   },
   deleteButtonText: {
-    fontSize: 24,
+    fontSize: 22,
   },
   eventTag: {
     backgroundColor: '#F3F4F6',
     borderRadius: 8,
-    padding: 8,
-    marginBottom: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    marginBottom: 8,
     alignSelf: 'flex-start',
   },
   eventTagText: {
-    fontSize: 14,
+    fontSize: 13,
     color: '#6B7280',
   },
   captionSection: {
-    marginBottom: 12,
+    marginBottom: 8,
   },
   caption: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#333',
-    lineHeight: 22,
+    lineHeight: 20,
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#F3F4F6',
-    marginVertical: 12,
+  // Tab bar
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#E5E7EB',
+    marginHorizontal: 20,
+    marginTop: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    alignItems: 'center',
+  },
+  tabActive: {
+    borderBottomWidth: 2,
+    borderBottomColor: '#8B5CF6',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#9CA3AF',
+  },
+  tabTextActive: {
+    color: '#8B5CF6',
+    fontWeight: '600',
+  },
+  // Tab content area — fills remaining panel space
+  tabContent: {
+    flex: 1,
+  },
+  // Reactions tab
+  reactionsScroll: {
+    flex: 1,
+  },
+  reactionsScrollContent: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 8,
+  },
+  noReactionsContainer: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  noReactionsText: {
+    fontSize: 15,
+    color: '#6B7280',
+    fontWeight: '500',
+  },
+  noReactionsSubtext: {
+    fontSize: 13,
+    color: '#9CA3AF',
+    marginTop: 4,
+  },
+  emojiPickerWrapper: {
+    marginTop: 16,
+    borderTopWidth: 1,
+    borderTopColor: '#F3F4F6',
+    paddingTop: 12,
   },
 });
