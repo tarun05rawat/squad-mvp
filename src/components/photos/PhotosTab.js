@@ -13,10 +13,50 @@ import {
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
 import PhotoActionSheet from './PhotoActionSheet';
+import ReactionBar from '../reactions/ReactionBar';
+import { usePhotoReactions } from '../../hooks/usePhotoReactions';
 
 const { width } = Dimensions.get('window');
 const COLUMN_COUNT = 3;
 const PHOTO_SIZE = (width - 48) / COLUMN_COUNT;
+
+function PhotoGridItem({ item, onPress, onLongPress, photoSize }) {
+  const { groupedReactions, addReaction } = usePhotoReactions(item.id);
+
+  return (
+    <View style={{ width: photoSize, margin: 4 }}>
+      <TouchableOpacity
+        testID={`photo-item-${item.id}`}
+        style={[styles.photoContainer, { width: photoSize, height: photoSize, margin: 0 }]}
+        onPress={() => onPress?.(item)}
+        onLongPress={() => onLongPress?.(item)}
+        delayLongPress={300}
+      >
+        <Image
+          source={{ uri: item.photo_url }}
+          style={styles.photo}
+          resizeMode="cover"
+        />
+        {item.caption && (
+          <View style={styles.captionOverlay}>
+            <Text style={styles.captionText} numberOfLines={2}>
+              {item.caption}
+            </Text>
+          </View>
+        )}
+      </TouchableOpacity>
+      {groupedReactions.length > 0 && (
+        <View style={styles.gridReactions}>
+          <ReactionBar
+            groupedReactions={groupedReactions}
+            onReactionPress={addReaction}
+            compact
+          />
+        </View>
+      )}
+    </View>
+  );
+}
 
 export default function PhotosTab({ squadId, onPhotoPress }) {
   const { user } = useAuth();
@@ -100,26 +140,12 @@ export default function PhotosTab({ squadId, onPhotoPress }) {
   };
 
   const renderPhoto = ({ item }) => (
-    <TouchableOpacity
-      testID={`photo-item-${item.id}`}
-      style={styles.photoContainer}
-      onPress={() => onPhotoPress?.(item)}
-      onLongPress={() => handleLongPress(item)}
-      delayLongPress={300}
-    >
-      <Image
-        source={{ uri: item.photo_url }}
-        style={styles.photo}
-        resizeMode="cover"
-      />
-      {item.caption && (
-        <View style={styles.captionOverlay}>
-          <Text style={styles.captionText} numberOfLines={2}>
-            {item.caption}
-          </Text>
-        </View>
-      )}
-    </TouchableOpacity>
+    <PhotoGridItem
+      item={item}
+      onPress={onPhotoPress}
+      onLongPress={handleLongPress}
+      photoSize={PHOTO_SIZE}
+    />
   );
 
   const renderEmpty = () => (
@@ -172,7 +198,7 @@ const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: '#F9FAFB' },
   loadingContainer: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#F9FAFB' },
   listContent: { padding: 16 },
-  photoContainer: { width: PHOTO_SIZE, height: PHOTO_SIZE, margin: 4, borderRadius: 8, overflow: 'hidden', backgroundColor: '#E5E7EB' },
+  photoContainer: { width: PHOTO_SIZE, height: PHOTO_SIZE, borderRadius: 8, overflow: 'hidden', backgroundColor: '#E5E7EB' },
   photo: { width: '100%', height: '100%' },
   captionOverlay: { position: 'absolute', bottom: 0, left: 0, right: 0, backgroundColor: 'rgba(0, 0, 0, 0.6)', padding: 6 },
   captionText: { color: '#fff', fontSize: 11, lineHeight: 14 },
@@ -180,4 +206,9 @@ const styles = StyleSheet.create({
   emptyEmoji: { fontSize: 64, marginBottom: 16 },
   emptyText: { fontSize: 18, fontWeight: '600', color: '#999', marginBottom: 8 },
   emptySubtext: { fontSize: 14, color: '#BBB', textAlign: 'center', paddingHorizontal: 40 },
+  gridReactions: {
+    paddingHorizontal: 4,
+    paddingTop: 4,
+    paddingBottom: 2,
+  },
 });

@@ -16,6 +16,21 @@ jest.mock('../src/context/AuthContext', () => ({
   useAuth: jest.fn(),
 }));
 
+jest.mock('../src/hooks/usePhotoReactions', () => ({
+  usePhotoReactions: () => ({
+    groupedReactions: [],
+    addReaction: jest.fn(),
+  }),
+}));
+
+jest.mock('../src/components/reactions/ReactionBar', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return function MockReactionBar() {
+    return <View />;
+  };
+});
+
 jest.mock('../src/components/photos/PhotoActionSheet', () => {
   const React = require('react');
   const { View, Text, TouchableOpacity } = require('react-native');
