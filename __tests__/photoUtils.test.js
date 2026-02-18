@@ -1,5 +1,6 @@
 import { uploadPhoto, deletePhoto, createPhotoRecord, uploadPhotoComplete, deletePhotoComplete } from '../src/utils/photoUtils';
 import { supabase } from '../src/lib/supabase';
+import * as FileSystem from 'expo-file-system/legacy';
 
 // Mock supabase
 jest.mock('../src/lib/supabase', () => ({
@@ -9,6 +10,11 @@ jest.mock('../src/lib/supabase', () => ({
     },
     from: jest.fn(),
   },
+}));
+
+// Mock expo-file-system/legacy
+jest.mock('expo-file-system/legacy', () => ({
+  readAsStringAsync: jest.fn(),
 }));
 
 // Mock fetch
@@ -26,13 +32,10 @@ describe('photoUtils', () => {
         type: 'image/jpeg',
       };
       const userId = 'user-123';
-      const mockBlob = new Blob(['fake-image-data']);
       const mockPublicUrl = 'https://storage.supabase.co/squad-photos/user-123/photo.jpg';
 
-      // Mock fetch to return blob
-      global.fetch.mockResolvedValueOnce({
-        blob: jest.fn().mockResolvedValue(mockBlob),
-      });
+      // Mock FileSystem.readAsStringAsync to return base64 for 'fake-image-data'
+      FileSystem.readAsStringAsync.mockResolvedValueOnce('ZmFrZS1pbWFnZS1kYXRh');
 
       // Mock storage upload
       const uploadMock = jest.fn().mockResolvedValue({
@@ -51,11 +54,11 @@ describe('photoUtils', () => {
 
       const result = await uploadPhoto(mockFile, userId);
 
-      expect(global.fetch).toHaveBeenCalledWith(mockFile.uri);
+      expect(FileSystem.readAsStringAsync).toHaveBeenCalledWith(mockFile.uri, { encoding: 'base64' });
       expect(supabase.storage.from).toHaveBeenCalledWith('squad-photos');
       expect(uploadMock).toHaveBeenCalledWith(
         expect.stringContaining(`${userId}/`),
-        mockBlob,
+        expect.any(Uint8Array),
         expect.objectContaining({
           contentType: 'image/jpeg',
           cacheControl: '3600',
@@ -69,9 +72,7 @@ describe('photoUtils', () => {
       const mockFile = { uri: 'file:///photo.jpg', type: 'image/jpeg' };
       const userId = 'user-123';
 
-      global.fetch.mockResolvedValueOnce({
-        blob: jest.fn().mockResolvedValue(new Blob()),
-      });
+      FileSystem.readAsStringAsync.mockResolvedValueOnce('ZmFrZS1pbWFnZS1kYXRh');
 
       const uploadError = new Error('Upload failed');
       const uploadMock = jest.fn().mockResolvedValue({
@@ -202,10 +203,8 @@ describe('photoUtils', () => {
       const mockPublicUrl = 'https://storage.supabase.co/photo.jpg';
       const mockPhotoData = { id: 'photo-123', photo_url: mockPublicUrl };
 
-      // Mock uploadPhoto
-      global.fetch.mockResolvedValueOnce({
-        blob: jest.fn().mockResolvedValue(new Blob()),
-      });
+      // Mock FileSystem for uploadPhoto
+      FileSystem.readAsStringAsync.mockResolvedValueOnce('ZmFrZS1pbWFnZS1kYXRh');
 
       const uploadMock = jest.fn().mockResolvedValue({
         data: { path: 'user-123/photo.jpg' },
