@@ -134,6 +134,8 @@ export default function PhotoUploadModal({ visible, onClose, squadId, eventId = 
             value={caption}
             onChangeText={setCaption}
             multiline
+            blurOnSubmit={true}
+            returnKeyType="done"
             maxLength={200}
             editable={!uploading}
           />
