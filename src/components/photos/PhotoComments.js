@@ -292,6 +292,7 @@ export default function PhotoComments({ photoId }) {
 
       <View style={styles.inputContainer}>
         <TextInput
+          autoFocus
           style={styles.input}
           placeholder="Add a comment..."
           placeholderTextColor="#6B7280"
@@ -418,6 +419,12 @@ const styles = StyleSheet.create({
     paddingTop: 10,
     paddingBottom: 20,
     paddingHorizontal: 16,
+    backgroundColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.06,
+    shadowRadius: 4,
+    elevation: 4,
   },
   input: {
     flex: 1,
