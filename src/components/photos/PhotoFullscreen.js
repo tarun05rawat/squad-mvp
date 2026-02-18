@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 20,
     borderTopRightRadius: 20,
     height: height * 0.55,
-    paddingTop: 16,
+    paddingTop: 8,
   },
   // Header area (uploader, event, caption) — non-scrollable, compact
   headerScroll: {
@@ -243,7 +243,7 @@ const styles = StyleSheet.create({
   uploaderRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 4,
   },
   avatar: {
     width: 36,
@@ -304,7 +304,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#E5E7EB',
     marginHorizontal: 20,
-    marginTop: 4,
+    marginTop: 0,
   },
   tab: {
     flex: 1,

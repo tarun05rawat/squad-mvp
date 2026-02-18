@@ -268,12 +268,13 @@ export default function PhotoComments({ photoId }) {
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0}
       >
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
             placeholder="Add a comment..."
+            placeholderTextColor="#6B7280"
             value={commentText}
             onChangeText={setCommentText}
             multiline
@@ -384,8 +385,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     borderTopWidth: 1,
     borderTopColor: '#E5E7EB',
-    paddingTop: 12,
-    paddingBottom: 8,
+    paddingTop: 10,
+    paddingBottom: 20,
+    paddingHorizontal: 16,
   },
   input: {
     flex: 1,
