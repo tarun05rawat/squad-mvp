@@ -1,5 +1,5 @@
 import { supabase } from '../lib/supabase';
-import * as FileSystem from 'expo-file-system';
+import * as FileSystem from 'expo-file-system/legacy';
 
 /**
  * Upload photo to Supabase Storage
@@ -20,7 +20,7 @@ export async function uploadPhoto(file, userId) {
 
     // Read file as base64 and decode to ArrayBuffer for upload
     const base64 = await FileSystem.readAsStringAsync(file.uri, {
-      encoding: FileSystem.EncodingType.Base64,
+      encoding: 'base64',
     });
     const binaryStr = atob(base64);
     const bytes = new Uint8Array(binaryStr.length);
