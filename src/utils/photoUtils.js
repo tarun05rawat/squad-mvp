@@ -8,10 +8,14 @@ import { supabase } from '../lib/supabase';
  */
 export async function uploadPhoto(file, userId) {
   try {
-    const fileExt = file.uri.split('.').pop();
+    const fileExt = file.uri.split('.').pop().toLowerCase().split('?')[0];
     const photoId = `${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const fileName = `${photoId}.${fileExt}`;
     const filePath = `${userId}/${fileName}`;
+
+    // Derive a valid MIME type from the file extension
+    const mimeMap = { jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', gif: 'image/gif', webp: 'image/webp', heic: 'image/heic', heif: 'image/heif' };
+    const contentType = mimeMap[fileExt] || 'image/jpeg';
 
     // Convert URI to blob for upload
     const response = await fetch(file.uri);
@@ -20,7 +24,7 @@ export async function uploadPhoto(file, userId) {
     const { data, error } = await supabase.storage
       .from('squad-photos')
       .upload(filePath, blob, {
-        contentType: file.type || 'image/jpeg',
+        contentType,
         cacheControl: '3600',
         upsert: false
       });
