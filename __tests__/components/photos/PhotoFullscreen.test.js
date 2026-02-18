@@ -23,6 +23,13 @@ jest.mock('../../../src/components/photos/PhotoComments', () => {
     return <View />;
   };
 });
+jest.mock('../../../src/components/photos/ReactorsList', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  return function MockReactorsList() {
+    return <View />;
+  };
+});
 
 describe('PhotoFullscreen', () => {
   const mockPhoto = {

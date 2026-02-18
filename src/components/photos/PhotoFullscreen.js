@@ -17,6 +17,7 @@ import ReactionBar from '../reactions/ReactionBar';
 import EmojiPicker from '../reactions/EmojiPicker';
 import { usePhotoReactions } from '../../hooks/usePhotoReactions';
 import PhotoComments from './PhotoComments';
+import ReactorsList from './ReactorsList';
 
 const { width, height } = Dimensions.get('window');
 
@@ -24,6 +25,8 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
   const { user } = useAuth();
   const { groupedReactions, addReaction } = usePhotoReactions(photo?.id);
   const [activeTab, setActiveTab] = useState('reactions');
+  const [selectedReactionEmoji, setSelectedReactionEmoji] = useState(null);
+  const [reactorsListVisible, setReactorsListVisible] = useState(false);
 
   if (!photo) return null;
 
@@ -136,7 +139,10 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
             <View style={styles.reactionsContent}>
               <ReactionBar
                 groupedReactions={groupedReactions}
-                onReactionPress={addReaction}
+                onReactionPress={(emoji) => {
+                  setSelectedReactionEmoji(emoji);
+                  setReactorsListVisible(true);
+                }}
               />
               {groupedReactions.length === 0 && (
                 <Text style={styles.emptyTabText}>No reactions yet. Be the first!</Text>
@@ -150,6 +156,14 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
           )}
         </View>
       </View>
+      <ReactorsList
+        visible={reactorsListVisible}
+        photoId={photo.id}
+        emoji={selectedReactionEmoji}
+        onClose={() => setReactorsListVisible(false)}
+        onToggleReaction={addReaction}
+        userReacted={groupedReactions.find(r => r.emoji === selectedReactionEmoji)?.userReacted ?? false}
+      />
     </Modal>
   );
 }
