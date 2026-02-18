@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import { deletePhotoComplete } from '../../utils/photoUtils';
 
 export default function PhotoActionSheet({ visible, photo, onClose, onOpenFullscreen, onDelete }) {
   const { user } = useAuth();
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
 
   if (!photo) return null;
 
@@ -22,62 +23,80 @@ export default function PhotoActionSheet({ visible, photo, onClose, onOpenFullsc
     onOpenFullscreen(photo);
   };
 
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure? This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              onClose(); // Close sheet after confirmation
-              await deletePhotoComplete(photo.id, photo.photo_url, user?.id);
-              onDelete(photo.id);
-            } catch (error) {
-              Alert.alert('Error', error.message || 'Failed to delete photo');
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteConfirm = async () => {
+    setDeleteSheetVisible(false);
+    onClose();
+    try {
+      await deletePhotoComplete(photo.id, photo.photo_url, user?.id);
+      onDelete(photo.id);
+    } catch (error) {
+      Alert.alert('Error', error.message || 'Failed to delete photo');
+    }
   };
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.handle} />
+    <>
+      <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+        <TouchableOpacity style={styles.backdrop} activeOpacity={1} onPress={onClose} />
+        <View style={styles.sheet}>
+          <View style={styles.handle} />
 
-        <TouchableOpacity style={styles.action} onPress={handleOpen}>
-          <Text style={styles.actionIcon}>👁️</Text>
-          <Text style={styles.actionLabel}>View</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.action} onPress={handleOpen}>
-          <Text style={styles.actionIcon}>😍</Text>
-          <Text style={styles.actionLabel}>React</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={styles.action} onPress={handleOpen}>
-          <Text style={styles.actionIcon}>💬</Text>
-          <Text style={styles.actionLabel}>Comment</Text>
-        </TouchableOpacity>
-
-        {isOwner && (
-          <TouchableOpacity style={[styles.action, styles.destructiveAction]} onPress={handleDelete}>
-            <Text style={styles.actionIcon}>🗑️</Text>
-            <Text style={[styles.actionLabel, styles.destructiveLabel]}>Delete</Text>
+          <TouchableOpacity style={styles.action} onPress={handleOpen}>
+            <Text style={styles.actionIcon}>👁️</Text>
+            <Text style={styles.actionLabel}>View</Text>
           </TouchableOpacity>
-        )}
 
-        <TouchableOpacity style={[styles.action, styles.cancelAction]} onPress={onClose}>
-          <Text style={styles.cancelLabel}>Cancel</Text>
-        </TouchableOpacity>
-      </View>
-    </Modal>
+          <TouchableOpacity style={styles.action} onPress={handleOpen}>
+            <Text style={styles.actionIcon}>😍</Text>
+            <Text style={styles.actionLabel}>React</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={styles.action} onPress={handleOpen}>
+            <Text style={styles.actionIcon}>💬</Text>
+            <Text style={styles.actionLabel}>Comment</Text>
+          </TouchableOpacity>
+
+          {isOwner && (
+            <TouchableOpacity
+              style={[styles.action, styles.destructiveAction]}
+              onPress={() => setDeleteSheetVisible(true)}
+            >
+              <Text style={styles.actionIcon}>🗑️</Text>
+              <Text style={[styles.actionLabel, styles.destructiveLabel]}>Delete photo</Text>
+            </TouchableOpacity>
+          )}
+
+          <TouchableOpacity style={[styles.action, styles.cancelAction]} onPress={onClose}>
+            <Text style={styles.cancelLabel}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+
+      {/* Delete confirmation — no scary Alert, calm bottom sheet */}
+      <Modal
+        visible={deleteSheetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setDeleteSheetVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.deleteBackdrop}
+          activeOpacity={1}
+          onPress={() => setDeleteSheetVisible(false)}
+        />
+        <View style={styles.deleteSheet}>
+          <View style={styles.handle} />
+          <Text style={styles.deleteTitle}>Delete photo?</Text>
+          <Text style={styles.deleteSubtitle}>This can't be undone.</Text>
+          <TouchableOpacity style={styles.deleteConfirm} onPress={handleDeleteConfirm}>
+            <Text style={styles.deleteConfirmText}>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteCancel} onPress={() => setDeleteSheetVisible(false)}>
+            <Text style={styles.deleteCancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </>
   );
 }
 
@@ -119,10 +138,10 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   destructiveAction: {
-    borderBottomColor: '#FEE2E2',
+    borderBottomColor: '#F3F4F6',
   },
   destructiveLabel: {
-    color: '#EF4444',
+    color: '#FF3B30',
   },
   cancelAction: {
     borderBottomWidth: 0,
@@ -135,5 +154,55 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     textAlign: 'center',
     flex: 1,
+  },
+  // Delete confirmation sheet
+  deleteBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  deleteSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    paddingTop: 12,
+    alignItems: 'center',
+  },
+  deleteTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 6,
+  },
+  deleteSubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginBottom: 24,
+  },
+  deleteConfirm: {
+    width: '100%',
+    backgroundColor: '#FF3B30',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  deleteConfirmText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteCancel: {
+    width: '100%',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  deleteCancelText: {
+    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

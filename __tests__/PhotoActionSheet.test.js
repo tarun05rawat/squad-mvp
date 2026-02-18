@@ -45,7 +45,7 @@ describe('PhotoActionSheet', () => {
     const { getByText } = render(
       <PhotoActionSheet visible={true} photo={mockPhoto} onClose={jest.fn()} onOpenFullscreen={jest.fn()} onDelete={jest.fn()} />
     );
-    expect(getByText('Delete')).toBeTruthy();
+    expect(getByText('Delete photo')).toBeTruthy();
   });
 
   it('hides Delete for non-owner', () => {
@@ -53,7 +53,7 @@ describe('PhotoActionSheet', () => {
     const { queryByText } = render(
       <PhotoActionSheet visible={true} photo={mockPhoto} onClose={jest.fn()} onOpenFullscreen={jest.fn()} onDelete={jest.fn()} />
     );
-    expect(queryByText('Delete')).toBeNull();
+    expect(queryByText('Delete photo')).toBeNull();
   });
 
   it('calls onOpenFullscreen and onClose when View is pressed', () => {

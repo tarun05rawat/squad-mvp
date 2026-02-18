@@ -10,6 +10,7 @@ import {
   Platform,
   Alert,
   Dimensions,
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { formatDistanceToNow } from 'date-fns';
 import { deletePhotoComplete } from '../../utils/photoUtils';
@@ -28,34 +29,26 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
   const [activeTab, setActiveTab] = useState('reactions'); // 'reactions' | 'comments'
   const [selectedReactionEmoji, setSelectedReactionEmoji] = useState(null);
   const [reactorsListVisible, setReactorsListVisible] = useState(false);
+  const [deleteSheetVisible, setDeleteSheetVisible] = useState(false);
 
   if (!photo) return null;
 
   const isOwner = photo.uploaded_by === user?.id;
 
-  const handleDelete = () => {
-    Alert.alert(
-      'Delete Photo',
-      'Are you sure you want to delete this photo? This cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await deletePhotoComplete(photo.id, photo.photo_url, user.id);
-              Alert.alert('Success', 'Photo deleted');
-              onDelete?.(photo.id);
-              onClose();
-            } catch (error) {
-              console.error('Delete error:', error);
-              Alert.alert('Error', error.message || 'Failed to delete photo');
-            }
-          },
-        },
-      ]
-    );
+  const handleDeleteConfirm = async () => {
+    setDeleteSheetVisible(false);
+    try {
+      await deletePhotoComplete(photo.id, photo.photo_url, user.id);
+      onDelete?.(photo.id);
+      onClose();
+    } catch (error) {
+      console.error('Delete error:', error);
+      Alert.alert('Error', error.message || 'Failed to delete photo');
+    }
+  };
+
+  const handleDoubleTap = () => {
+    addReaction('❤️');
   };
 
   return (
@@ -69,14 +62,16 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
           <Text style={styles.closeButtonText}>✕</Text>
         </TouchableOpacity>
 
-        {/* Photo */}
-        <View style={styles.imageContainer}>
-          <Image
-            source={{ uri: photo.photo_url }}
-            style={styles.image}
-            resizeMode="contain"
-          />
-        </View>
+        {/* Photo — double tap to ❤️ */}
+        <TouchableWithoutFeedback onPress={handleDoubleTap}>
+          <View style={styles.imageContainer}>
+            <Image
+              source={{ uri: photo.photo_url }}
+              style={styles.image}
+              resizeMode="contain"
+            />
+          </View>
+        </TouchableWithoutFeedback>
 
         {/* Info panel */}
         <View style={styles.infoPanel}>
@@ -100,7 +95,7 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
                 </Text>
               </View>
               {isOwner && (
-                <TouchableOpacity style={styles.deleteButton} onPress={handleDelete}>
+                <TouchableOpacity style={styles.deleteButton} onPress={() => setDeleteSheetVisible(true)}>
                   <Text style={styles.deleteButtonText}>🗑️</Text>
                 </TouchableOpacity>
               )}
@@ -187,6 +182,31 @@ export default function PhotoFullscreen({ visible, photo, onClose, onDelete }) {
         onToggleReaction={addReaction}
         userReacted={groupedReactions.find(r => r.emoji === selectedReactionEmoji)?.userReacted ?? false}
       />
+
+      {/* Delete confirmation sheet — replaces Alert */}
+      <Modal
+        visible={deleteSheetVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setDeleteSheetVisible(false)}
+      >
+        <TouchableOpacity
+          style={styles.deleteSheetBackdrop}
+          activeOpacity={1}
+          onPress={() => setDeleteSheetVisible(false)}
+        />
+        <View style={styles.deleteSheet}>
+          <View style={styles.deleteSheetHandle} />
+          <Text style={styles.deleteSheetTitle}>Delete photo?</Text>
+          <Text style={styles.deleteSheetSubtitle}>This can't be undone.</Text>
+          <TouchableOpacity style={styles.deleteSheetConfirm} onPress={handleDeleteConfirm}>
+            <Text style={styles.deleteSheetConfirmText}>Delete</Text>
+          </TouchableOpacity>
+          <TouchableOpacity style={styles.deleteSheetCancel} onPress={() => setDeleteSheetVisible(false)}>
+            <Text style={styles.deleteSheetCancelText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </Modal>
     </Modal>
   );
 }
@@ -352,5 +372,62 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#9CA3AF',
     marginTop: 2,
+  },
+  // Delete confirmation bottom sheet
+  deleteSheetBackdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+  },
+  deleteSheet: {
+    backgroundColor: '#fff',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    paddingHorizontal: 24,
+    paddingBottom: 40,
+    paddingTop: 12,
+    alignItems: 'center',
+  },
+  deleteSheetHandle: {
+    width: 36,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#D1D5DB',
+    marginBottom: 20,
+  },
+  deleteSheetTitle: {
+    fontSize: 17,
+    fontWeight: '600',
+    color: '#1F2937',
+    marginBottom: 6,
+  },
+  deleteSheetSubtitle: {
+    fontSize: 14,
+    color: '#9CA3AF',
+    marginBottom: 24,
+  },
+  deleteSheetConfirm: {
+    width: '100%',
+    backgroundColor: '#FF3B30',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+    marginBottom: 10,
+  },
+  deleteSheetConfirmText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  deleteSheetCancel: {
+    width: '100%',
+    backgroundColor: '#F3F4F6',
+    borderRadius: 14,
+    paddingVertical: 14,
+    alignItems: 'center',
+  },
+  deleteSheetCancelText: {
+    color: '#1F2937',
+    fontSize: 16,
+    fontWeight: '500',
   },
 });

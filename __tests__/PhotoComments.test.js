@@ -102,7 +102,7 @@ describe('PhotoComments', () => {
     const emptyText = await findByText('No comments yet');
     expect(emptyText).toBeTruthy();
 
-    const subtext = await findByText('Be the first to comment!');
+    const subtext = await findByText('Be the first to say something 💬');
     expect(subtext).toBeTruthy();
   });
 
@@ -142,10 +142,10 @@ describe('PhotoComments', () => {
     );
 
     await waitFor(() => {
-      expect(getByPlaceholderText('Add a comment...')).toBeTruthy();
+      expect(getByPlaceholderText('Say something…')).toBeTruthy();
     });
 
-    const input = getByPlaceholderText('Add a comment...');
+    const input = getByPlaceholderText('Say something…');
     fireEvent.changeText(input, 'This is a test comment');
 
     const postButton = getByText('Post');

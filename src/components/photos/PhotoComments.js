@@ -276,7 +276,7 @@ export default function PhotoComments({ photoId }) {
       ) : comments.length === 0 ? (
         <View style={styles.emptyContainer}>
           <Text style={styles.emptyText}>No comments yet</Text>
-          <Text style={styles.emptySubtext}>Be the first to comment!</Text>
+          <Text style={styles.emptySubtext}>Be the first to say something 💬</Text>
         </View>
       ) : (
         <FlatList
@@ -292,9 +292,8 @@ export default function PhotoComments({ photoId }) {
 
       <View style={styles.inputContainer}>
         <TextInput
-          autoFocus
           style={styles.input}
-          placeholder="Add a comment..."
+          placeholder="Say something…"
           placeholderTextColor="#6B7280"
           value={commentText}
           onChangeText={setCommentText}
@@ -396,20 +395,23 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   deleteAction: {
-    backgroundColor: '#EF4444',
+    backgroundColor: '#FF3B30',
     justifyContent: 'center',
     alignItems: 'center',
-    width: 80,
+    width: 72,
     marginBottom: 20,
+    marginRight: 8,
+    borderRadius: 12,
   },
   deleteActionIcon: {
-    fontSize: 18,
+    fontSize: 16,
   },
   deleteActionText: {
     color: '#fff',
     fontSize: 11,
     fontWeight: '600',
     marginTop: 2,
+    letterSpacing: 0.2,
   },
   inputContainer: {
     flexDirection: 'row',

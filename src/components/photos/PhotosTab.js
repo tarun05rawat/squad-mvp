@@ -153,7 +153,7 @@ export default function PhotosTab({ squadId, onPhotoPress }) {
       <Text style={styles.emptyEmoji}>📸</Text>
       <Text style={styles.emptyText}>No photos yet</Text>
       <Text style={styles.emptySubtext}>
-        Tap + Upload Photo to add your first photo!
+        Drop the first memory 📸
       </Text>
     </View>
   );
