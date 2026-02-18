@@ -34,7 +34,7 @@ export default function PhotoActionSheet({ visible, photo, onClose, onOpenFullsc
           onPress: async () => {
             try {
               onClose(); // Close sheet after confirmation
-              await deletePhotoComplete(photo.id, photo.photo_url, user.id);
+              await deletePhotoComplete(photo.id, photo.photo_url, user?.id);
               onDelete(photo.id);
             } catch (error) {
               Alert.alert('Error', error.message || 'Failed to delete photo');
