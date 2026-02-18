@@ -75,4 +75,26 @@ describe('PhotoActionSheet', () => {
     fireEvent.press(getByText('Cancel'));
     expect(onClose).toHaveBeenCalled();
   });
+
+  it('calls onOpenFullscreen and onClose when React is pressed', () => {
+    const onOpenFullscreen = jest.fn();
+    const onClose = jest.fn();
+    const { getByText } = render(
+      <PhotoActionSheet visible={true} photo={mockPhoto} onClose={onClose} onOpenFullscreen={onOpenFullscreen} onDelete={jest.fn()} />
+    );
+    fireEvent.press(getByText('React'));
+    expect(onClose).toHaveBeenCalled();
+    expect(onOpenFullscreen).toHaveBeenCalledWith(mockPhoto);
+  });
+
+  it('calls onOpenFullscreen and onClose when Comment is pressed', () => {
+    const onOpenFullscreen = jest.fn();
+    const onClose = jest.fn();
+    const { getByText } = render(
+      <PhotoActionSheet visible={true} photo={mockPhoto} onClose={onClose} onOpenFullscreen={onOpenFullscreen} onDelete={jest.fn()} />
+    );
+    fireEvent.press(getByText('Comment'));
+    expect(onClose).toHaveBeenCalled();
+    expect(onOpenFullscreen).toHaveBeenCalledWith(mockPhoto);
+  });
 });

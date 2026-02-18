@@ -23,7 +23,6 @@ export default function PhotoActionSheet({ visible, photo, onClose, onOpenFullsc
   };
 
   const handleDelete = () => {
-    onClose();
     Alert.alert(
       'Delete Photo',
       'Are you sure? This cannot be undone.',
@@ -34,6 +33,7 @@ export default function PhotoActionSheet({ visible, photo, onClose, onOpenFullsc
           style: 'destructive',
           onPress: async () => {
             try {
+              onClose(); // Close sheet after confirmation
               await deletePhotoComplete(photo.id, photo.photo_url, user.id);
               onDelete(photo.id);
             } catch (error) {
